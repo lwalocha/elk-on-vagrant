@@ -1,0 +1,11 @@
+- name: setup kibana dashboards
+  hosts: es-beat-nodes,es-master-nodes,es-kibana-nodes
+  tasks:
+    - name: setup metricbeat dasboards
+      when: "'es-beat-nodes' in group_names"
+      shell: |
+        metricbeat setup -E 'setup.kibana.host="{{kibanaHosts_http_url.split()[0]}}"'
+        filebeat setup -E 'setup.kibana.host="{{kibanaHosts_http_url.split()[0]}}"'
+        auditbeat setup -E 'setup.kibana.host="{{kibanaHosts_http_url.split()[0]}}"'
+      sudo: yes
+

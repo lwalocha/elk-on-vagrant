@@ -1,0 +1,44 @@
+- hosts: es-kibana-nodes
+  tasks:
+    - name: create cert dirs
+      file:
+        path: /etc/kibana/certs
+        state: directory
+      sudo: yes
+    - name: copy client certificates
+      copy:
+        src: certs/client-ca.cer
+        dest: /etc/kibana/certs
+      sudo: yes
+    - name: copy client certificates
+      copy:
+        src: certs/client.cer
+        dest: /etc/kibana/certs
+      sudo: yes
+    - name: copy client certificates
+      copy:
+        src: certs/client.key
+        dest: /etc/kibana/certs
+      sudo: yes
+
+
+- name: install kibana on specified hosts
+  hosts: es-kibana-nodes,es-master-nodes
+  roles:
+    - { name: geerlingguy.kibana, when: "'es-master-nodes' not in group_names"
+    }
+  sudo: yes
+  vars:
+    masterHosts_http_url: "{% for host in groups['es-master-nodes'] %} https://{{hostvars[host]['ansible_'+public_iface]['ipv4']['address'] }}:{{cluster_http_port}}{%endfor %}"
+    kibana_version: "{{es_major_version}}"
+    kibana_package: "{{kibana_package_default}}"
+    kibana_package_state: latest
+    kibana_service_state: started
+    kibana_service_enabled: true
+    kibana_config_template: "{{inventory_dir}}/kibana.yml.j2"
+    kibana_config_file_path: /etc/kibana/kibana.yml
+    kibana_server_port: "{{kibana_port}}"
+    kibana_server_host: "0.0.0.0"
+    kibana_elasticsearch_hosts: "{{ masterHosts_http_url.split() | to_yaml }}"
+    kibana_elasticsearch_username: ""
+    kibana_elasticsearch_password: ""

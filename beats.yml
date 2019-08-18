@@ -1,0 +1,197 @@
+- hosts: es-beat-nodes
+  tasks:
+    - name: create cert dirs
+      file:
+        path: /etc/pki/certs
+        state: directory
+      sudo: yes
+    - name: copy client certificates
+      copy:
+        src: certs/client-ca.cer
+        dest: /etc/pki/certs
+      sudo: yes
+    - name: copy client certificates
+      copy:
+        src: certs/client.cer
+        dest: /etc/pki/certs
+      sudo: yes
+    - name: copy client certificates
+      copy:
+        src: certs/client.key
+        dest: /etc/pki/certs
+      sudo: yes
+
+
+- name: install all required beats on specified hosts
+  hosts: es-beat-nodes,es-master-nodes,es-kibana-nodes
+  roles:
+    - { name: elastic.beats, beat: "metricbeat", when: "'es-beat-nodes' in group_names",
+        beat_conf: {
+          "metricbeat.modules": [
+            { "module": "system",
+              "metricsets": [
+                "cpu",
+                "load",
+                "memory",
+                "network",
+                "process",
+                "process_summary",
+                "uptime",
+                "socket_summary",
+                "diskio",
+                "core",
+                "filesystem",
+                "fsstat"
+              ],
+              "enabled": false,
+              "period": "10s",
+              "processes": [ ".*" ]
+            },
+            { "module": "vsphere",
+              "metricsets": [
+                "datastore",
+                "host",
+                "virtualmachine"
+              ],
+              "enabled": true,
+              "period": "10s",
+              "hosts": [ "https://192.168.33.100/sdk" ],
+              "username": "root",
+              "password": "VMWare123",
+              "insecure": "true"
+            }
+          ],
+          "setup.template": {
+            "name": "metricbeat",
+            "pattern": "metricbeat-*"
+          },
+          "xpack.monitoring": {
+            "enabled": true,
+            "elasticsearch": {
+              "username": "beats_system",
+              "password": "{{elastic_password}}"
+            }
+          }
+        },
+        output_conf: {
+          "elasticsearch": {
+            "hosts": "{{ masterHosts_http_url.split() }}",
+            "ssl.verification_mode": "none",
+            "index": "metricbeat",
+            "username": "elastic",
+            "password": "{{elastic_password}}"
+#            "output.elasticsearch.ssl.certificate_authorities": ["/etc/pki/certs/client-ca.cer"],
+#            "output.elasticsearch.ssl.certificate": "/etc/pki/client/client.cer",
+#            "output.elasticsearch.ssl.key": "/etc/pki/client/client.key"
+          }
+        }
+    }
+  sudo: yes
+  vars:
+    beats_version: "{{elk_version}}"
+    elastic_password: ""
+
+- name: install all required beats on specified hosts
+  hosts: es-beat-nodes,es-master-nodes,es-kibana-nodes
+  roles:
+    - { name: elastic.beats, beat: "filebeat", when: "'es-beat-nodes' in group_names",
+        beat_conf: {
+          "filebeat.modules": [
+          { "module": "system",
+            "enabled": true,
+            "syslog.enabled": true,
+            "syslog.var.paths": [ "/var/log/messages*", "/var/log/maillog*" ],
+            "auth.enabled": true
+          },
+          { "module": "elasticsearch",
+            "enabled": true
+          },
+          { "module": "apache",
+            "enabled": true,
+            "access.enabled": true,
+            "access.var.paths": [ "/var/log/httpd/*access.log*" ],
+            "error.enabled": true,
+            "error.var.paths": [ "/var/log/httpd/error_log*" ]
+          } ],
+          "setup.template": {
+            "name": "filebeat",
+            "pattern": "filebeat-*"
+          },
+          "xpack.monitoring": {
+            "enabled": true,
+            "elasticsearch": {
+              "username": "beats_system",
+              "password": "{{elastic_password}}"
+            }
+          }
+        },
+        output_conf: {
+          "elasticsearch": {
+            "hosts": "{{ masterHosts_http_url.split() }}",
+            "ssl.verification_mode": "none",
+            "index": "filebeat",
+            "username": "elastic",
+            "password": "{{elastic_password}}"
+#            "output.elasticsearch.ssl.certificate_authorities": ["/etc/pki/certs/client-ca.cer"],
+#            "output.elasticsearch.ssl.certificate": "/etc/pki/client/client.cer",
+#            "output.elasticsearch.ssl.key": "/etc/pki/client/client.key"
+          }
+        }
+    }
+  sudo: yes 
+  vars:
+    beats_version: "{{elk_version}}"
+    elastic_password: ""
+
+
+- name: install all required beats on specified hosts
+  hosts: es-beat-nodes,es-master-nodes,es-kibana-nodes
+  roles:
+    - { name: elastic.beats, beat: "auditbeat", when: "'es-beat-nodes' in group_names",
+        beat_conf: {
+          "auditbeat.modules": [
+          { "module": "system",
+            "enabled": true
+          },
+          { "module": "file_integrity",
+            "enabled": true,
+            "paths": [ "/etc", "/bin", "/sbin", "/usr/bin", "/usr/sbin", "/var/web" ],
+            "recursive": true
+          },
+          { "module": "auditd",
+            "enabled": true,
+            "audit_rules": "-a always,exit -F arch=b64 -S execve,execveat -k exec\n-a always,exit -F arch=b64 -S accept,bind,connect -F key=external-access\n-w /etc/group -p wa -k identity\n-w /etc/passwd -p wa -k identity\n-w /etc/gshadow -p wa -k identity\n-a always,exit -F arch=b64 -S open,creat,truncate,ftruncate,openat,open_by_handle_at -F exit=-EACCES -k access\n-a always,exit -F arch=b64 -S open,creat,truncate,ftruncate,openat,open_by_handle_at -F exit=-EPERM -k access\n"
+          }
+          ],
+          "setup.template": {
+            "name": "auditbeat",
+            "pattern": "auditbeat-*"
+          },
+          "xpack.monitoring": {
+            "enabled": true,
+            "elasticsearch": {
+              "username": "beats_system",
+              "password": "{{elastic_password}}"
+            }
+          }
+        },
+        output_conf: {
+          "elasticsearch": {
+            "hosts": "{{ masterHosts_http_url.split() }}",
+            "ssl.verification_mode": "none",
+            "index": "auditbeat",
+            "pipeline": "auditbeat",
+            "username": "elastic",
+            "password": "{{elastic_password}}"
+#            "output.elasticsearch.ssl.certificate_authorities": ["/etc/pki/certs/client-ca.cer"],
+#            "output.elasticsearch.ssl.certificate": "/etc/pki/client/client.cer",
+#            "output.elasticsearch.ssl.key": "/etc/pki/client/client.key"
+          }
+        }
+    }
+  sudo: yes
+  vars:
+    beats_version: "{{elk_version}}"
+    elastic_password: ""
+#    use_repository: "true"
+
