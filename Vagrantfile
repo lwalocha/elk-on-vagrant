@@ -25,7 +25,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           node.vm.provision "file", source: "./keys/id_rsa", destination: "$HOME/.ssh/id_rsa"
           node.vm.provision :shell do |shell|
             shell.inline = <<-SHELL
-              chmod 600 $HOME/.ssh/id_rsa
+              chmod 600 home/vagrant/.ssh/id_rsa
               sudo yum -y install ansible ansible-galaxy
               sudo ansible-galaxy install --roles-path /etc/ansible/roles elastic.elasticsearch
               sudo ansible-galaxy install --roles-path /etc/ansible/roles elastic.beats
