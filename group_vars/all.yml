@@ -23,7 +23,7 @@ kibanaHosts_http_url: "{% for host in groups['es-kibana-nodes'] %} http://{{host
 es_version: "{{ elk_version }}"
 cluster_http_port: 9203
 cluster_transport_tcp_port: 9303
-kibana_port: 5601a
+kibana_port: 5601
 el_instance_name: instance
 ### przy zmianie nazwy instancji należy wygenerować nowy certyfikat, patrz https://www.elastic.co/blog/elasticsearch-security-configure-tls-ssl-pki-authentication
 el_instance_http_url: "https://{{ el_instance_name }}:{{ cluster_http_port }}"
