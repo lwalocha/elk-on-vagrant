@@ -1,0 +1,42 @@
+#############################################################################
+#                                                                            #
+# Logstash config file that ingests blog posts from a csv file.              #
+#                                                                            #
+##############################################################################
+
+input {
+  file {
+    path => "/vagrant/datasets/blogs.csv"
+    start_position =>  "beginning"
+    sincedb_path =>  "/dev/null"
+  }
+}
+
+
+filter {
+  dissect {
+    mapping => {
+      "message" => "%{title};%{seo_title};%{url};%{author};%{date};%{category};%{locales};%{content}"
+    }
+  }
+  date {
+    match => [ "date", "MMMM dd, yyyy" ]
+    target => "publish_date"
+    remove_field => ["date"]
+  }
+  mutate {
+    remove_field => ["@version", "path", "host", "message", "tags", "@timestamp"]
+  }
+}
+
+output {
+  stdout { codec => "dots"}
+  elasticsearch {
+    hosts => ["{{el_instance_http_url}}"]
+    ssl => true
+    ssl_certificate_verification => true
+    cacert => '/etc/pki/certs/client-ca.cer'
+    index => "blogs"
+    document_type => "_doc"
+  }
+}

@@ -8,7 +8,6 @@ VAGRANTFILE_API_VERSION = '2'
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 #  config.vbguest.auto_update = false
   inventory.each do |group, groupHosts|
-#    next if (group == "justLocal")
     groupHosts['hosts'].each do |hostName, hostInfo|
       config.vm.define hostName do |node|
         node.vm.box = hostInfo['box'] ||= DEFAULT_BASE_BOX
@@ -30,11 +29,17 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               sudo ansible-galaxy install --roles-path /etc/ansible/roles elastic.elasticsearch
               sudo ansible-galaxy install --roles-path /etc/ansible/roles elastic.beats
               sudo ansible-galaxy install --roles-path /etc/ansible/roles geerlingguy.kibana
+              sudo ansible-galaxy install --roles-path /etc/ansible/roles geerlingguy.java
+              sudo ansible-galaxy install --roles-path /etc/ansible/roles geerlingguy.logstash
+              sudo sed -i 's/name: logstash/name: "{{logstash_package_default}}"/g' /etc/ansible/roles/geerlingguy.logstash/tasks/setup-RedHat.yml
             SHELL
           end
         end
         if (group == "es-master-nodes") or (group == "es-data-nodes") then
            node.vm.box = vars['elastic_box']
+        end
+        if (group == "es-logstash-nodes") then
+          node.vm.box = vars['logstash_box']
         end
         if (group == "es-beat-nodes") and (vars['es_use_repository'] == false) then
           node.vm.provision :shell do |shell|
@@ -44,14 +49,22 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             SHELL
           end
         end
-#        if (group == "esxi-nodes") then
-#           node.vm.box = vars['esxi_box']
-#           node.vm.provider :virtualbox do |vb|
-#             vb.name = hostName
-#             vb.customize ["modifyvm", :id, "--usb", "on"]
-#             vb.customize ["modifyvm", :id, "--usbehci", "off"]
-#           end
-#        end
+        if (group == "es-filebeat-nodes") then
+          node.vm.provision "file", source: "./datasets/elastic_blog_curated_access_logs.tar.gz", destination: "$HOME/datasets/elastic_blog_curated_access_logs.tar.gz"
+          node.vm.provision :shell do |shell|
+            shell.inline = <<-SHELL
+              tar xfvz /home/vagrant/datasets/elastic_blog_curated_access_logs.tar.gz -C /home/vagrant/datasets
+            SHELL
+          end
+          if (vars['es_use_repository'] == false)
+            node.vm.provision :shell do |shell|
+              shell.args = vars['filebeat_custom_package']
+              shell.inline = <<-SHELL
+                sudo yum -y install $1               
+              SHELL
+            end   
+          end
+        end
       end
     end
   end

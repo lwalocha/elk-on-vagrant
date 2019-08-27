@@ -1,7 +1,8 @@
 ansible_box: "fbarriere/ansible-centos7"
 default_box: "centos/7"
+#elastic_box: "centos/7"
 elastic_box: "garethahealy/centos7_java8"
-#esxi_box: "trueability/esxi-6.7"
+logstash_box: "centos/7"
 private_iface: eth0
 public_iface: eth1
 elk_version: 7.3.0
@@ -11,12 +12,18 @@ es_custom_package_url: file:///vagrant/rpms/elasticsearch-7.3.0-x86_64.rpm
 metricbeat_custom_package: /vagrant/rpms/metricbeat-7.3.0-x86_64.rpm
 auditbeat_custom_package: /vagrant/rpms/auditbeat-7.3.0-x86_64.rpm
 filebeat_custom_package: /vagrant/rpms/filebeat-7.3.0-x86_64.rpm
+logstash_custom_package: /vagrant/rpms/logstash-7.3.0.rpm
 kibana_custom_package: /vagrant/rpms/kibana-7.3.0-x86_64.rpm
-kibana_package_default: '{{ "kibana" if es_use_repository | bool else kibana_custom_package }}'
+kibana_package_default: '{{ "kibana-" + elk_version if es_use_repository | bool else kibana_custom_package }}'
+logstash_package_default: '{{ "logstash-" + elk_version if es_use_repository | bool else logstash_custom_package }}'
+masterHosts_ip: "{% for host in groups['es-master-nodes'] %} {{hostvars[host]['ansible_'+public_iface]['ipv4']['address'] }}{%endfor %}"
+masterHost_ip: "{{ masterHosts_ip.split()[0] }}"
 masterHosts_http_url: "{% for host in groups['es-master-nodes'] %} https://{{hostvars[host]['ansible_'+public_iface]['ipv4']['address'] }}:{{cluster_http_port}}{%endfor %}"
 kibanaHosts_http_url: "{% for host in groups['es-kibana-nodes'] %} http://{{hostvars[host]['ansible_'+public_iface]['ipv4']['address'] }}:{{kibana_port}}{%endfor %}"
 es_version: "{{ elk_version }}"
 cluster_http_port: 9203
 cluster_transport_tcp_port: 9303
-kibana_port: 5601
-el_instance_name: kaszana5
+kibana_port: 5601a
+el_instance_name: instance
+### przy zmianie nazwy instancji należy wygenerować nowy certyfikat, patrz https://www.elastic.co/blog/elasticsearch-security-configure-tls-ssl-pki-authentication
+el_instance_http_url: "https://{{ el_instance_name }}:{{ cluster_http_port }}"

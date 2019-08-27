@@ -1,0 +1,62 @@
+- hosts: es-logstash-nodes
+  tasks:
+    - name: create cert dirs
+      file:
+        path: /etc/pki/certs
+        state: directory
+      sudo: yes
+    - name: copy client certificates
+      copy:
+        src: certs/client-ca.cer
+        dest: /etc/pki/certs
+      sudo: yes
+    - name: copy client certificates
+      copy:
+        src: certs/client.cer
+        dest: /etc/pki/certs
+      sudo: yes
+    - name: copy client certificates
+      copy:
+        src: certs/client.key
+        dest: /etc/pki/certs
+      sudo: yes
+
+- name: install java
+  hosts: es-logstash-nodes
+  roles:
+    - role: geerlingguy.java
+      when: "ansible_os_family == 'RedHat'"
+      java_packages:
+        - java-1.8.0-openjdk
+
+- name: install logstash on specified hosts
+  hosts: es-logstash-nodes,es-master-nodes
+  roles:
+    - { name: geerlingguy.logstash, when: "'es-logstash-nodes' in group_names"
+    }
+  sudo: yes
+  vars:
+    logstash_version: "{{es_major_version}}"
+    logstash_enabled_on_boot: false
+
+- hosts: es-logstash-nodes
+  tasks:
+    - name: add entry to hosts file
+      lineinfile:
+        path: /etc/hosts
+        line: '{{masterHost_ip}} {{el_instance_name}}'
+      sudo: yes
+    - name: remove unused config file
+      shell: rm -rf /etc/logstash/conf.d/*.conf
+      sudo: yes
+    - name: copy config file
+      template:
+        src: datasets/blogs_csv.conf.j2
+        dest: /etc/logstash/conf.d/01-blog_csv.conf
+      sudo: yes
+    - name: start service
+      service:
+        name: logstash
+        state: restarted
+      sudo: yes
+

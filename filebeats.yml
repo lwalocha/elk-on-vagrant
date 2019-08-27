@@ -1,0 +1,72 @@
+- hosts: es-dataset-nodes
+  tasks:
+    - name: create cert dirs
+      file:
+        path: /etc/pki/certs
+        state: directory
+      sudo: yes
+    - name: copy client certificates
+      copy:
+        src: certs/client-ca.cer
+        dest: /etc/pki/certs
+      sudo: yes
+    - name: copy client certificates
+      copy:
+        src: certs/client.cer
+        dest: /etc/pki/certs
+      sudo: yes
+    - name: copy client certificates
+      copy:
+        src: certs/client.key
+        dest: /etc/pki/certs
+      sudo: yes
+
+
+- name: install filebeat on specified hosts
+  hosts: es-dataset-nodes,es-master-nodes
+  roles:
+    - { name: elastic.beats, beat: "filebeat", when: "'es-dataset-nodes' in group_names",
+        beat_conf: {
+          "filebeat.inputs": [
+            { "type": "log",
+              "close_inactive": "10m",
+              "enabled": true,
+              "paths": [ "/home/vagrant/datasets/elastic_blog_curated_access_logs_server*/*.log" ]
+          } ],
+          "processors": [
+            { "decode_json_fields":
+              { "target": "",
+                "fields": ["message"],
+                "overwrite_keys": true
+              }
+            },
+            { "drop_fields":
+              { "fields": ["message", "prospector", "beat", "source", "offset"]
+              }
+          } ],
+          "setup.template": {
+            "enabled": false
+          },
+          "setup.ilm": {
+            "enabled": false
+          }
+        },
+        output_conf: {
+          "elasticsearch": {
+            "hosts": "{{ masterHosts_http_url.split() }}",
+            "ssl.verification_mode": "none",
+            "index": "logs_%{[host]}",
+            "bulk_max_size": "1000",
+            "username": "elastic",
+            "password": "{{elastic_password}}"
+#            "output.elasticsearch.ssl.certificate_authorities": ["/etc/pki/certs/client-ca.cer"],
+#            "output.elasticsearch.ssl.certificate": "/etc/pki/client/client.cer",
+#            "output.elasticsearch.ssl.key": "/etc/pki/client/client.key"
+          }
+        }
+    }
+  sudo: yes 
+  vars:
+    beats_version: "{{elk_version}}"
+    elastic_password: ""
+

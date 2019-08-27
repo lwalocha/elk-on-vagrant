@@ -29,7 +29,7 @@
     }
   sudo: yes
   vars:
-    masterHosts_http_url: "{% for host in groups['es-master-nodes'] %} https://{{hostvars[host]['ansible_'+public_iface]['ipv4']['address'] }}:{{cluster_http_port}}{%endfor %}"
+#    masterHosts_http_url: "{% for host in groups['es-master-nodes'] %} https://{{hostvars[host]['ansible_'+public_iface]['ipv4']['address'] }}:{{cluster_http_port}}{%endfor %}"
     kibana_version: "{{es_major_version}}"
     kibana_package: "{{kibana_package_default}}"
     kibana_package_state: latest
