@@ -28,6 +28,7 @@
       when: "ansible_os_family == 'RedHat'"
       java_packages:
         - java-1.8.0-openjdk
+  sudo: yes
 
 - name: install logstash on specified hosts
   hosts: es-logstash-nodes,es-master-nodes

@@ -1,4 +1,4 @@
-- hosts: es-dataset-nodes
+- hosts: es-filebeat-nodes
   tasks:
     - name: create cert dirs
       file:
@@ -23,9 +23,9 @@
 
 
 - name: install filebeat on specified hosts
-  hosts: es-dataset-nodes,es-master-nodes
+  hosts: es-filebeat-nodes,es-master-nodes
   roles:
-    - { name: elastic.beats, beat: "filebeat", when: "'es-dataset-nodes' in group_names",
+    - { name: elastic.beats, beat: "filebeat", when: "'es-filebeat-nodes' in group_names",
         beat_conf: {
           "filebeat.inputs": [
             { "type": "log",
