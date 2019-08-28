@@ -42,11 +42,6 @@
 
 - hosts: es-logstash-nodes
   tasks:
-    - name: add entry to hosts file
-      lineinfile:
-        path: /etc/hosts
-        line: '{{masterHost_ip}} {{el_instance_name}}'
-      sudo: yes
     - name: remove unused config file
       shell: rm -rf /etc/logstash/conf.d/*.conf
       sudo: yes

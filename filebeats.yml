@@ -20,7 +20,10 @@
         src: certs/client.key
         dest: /etc/pki/certs
       sudo: yes
-
+    - name: prepare datasets
+      shell: |
+        mkdir -p /home/vagrant/datasets
+        tar xfvz /vagrant/datasets/elastic_blog_curated_access_logs.tar.gz -C /home/vagrant/datasets
 
 - name: install filebeat on specified hosts
   hosts: es-filebeat-nodes,es-master-nodes
@@ -53,20 +56,20 @@
         },
         output_conf: {
           "elasticsearch": {
-            "hosts": "{{ masterHosts_http_url.split() }}",
-            "ssl.verification_mode": "none",
+            "hosts": "{{el_instance_http_url}}",
+            "ssl.verification_mode": "full",
             "index": "logs_%{[host]}",
             "bulk_max_size": "1000",
             "username": "elastic",
-            "password": "{{elastic_password}}"
-#            "output.elasticsearch.ssl.certificate_authorities": ["/etc/pki/certs/client-ca.cer"],
-#            "output.elasticsearch.ssl.certificate": "/etc/pki/client/client.cer",
-#            "output.elasticsearch.ssl.key": "/etc/pki/client/client.key"
+            "password": "{{elastic_password}}",
+            "ssl.certificate_authorities": ["/etc/pki/certs/client-ca.cer"]
           }
         }
     }
   sudo: yes 
   vars:
     beats_version: "{{elk_version}}"
+    use_repository: "{{es_use_repository}}"
+    custom_package_url: "{{filebeat_custom_package_url}}"
     elastic_password: ""
 

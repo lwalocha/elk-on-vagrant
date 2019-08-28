@@ -2,21 +2,21 @@ ansible_box: "fbarriere/ansible-centos7"
 default_box: "centos/7"
 #elastic_box: "centos/7"
 elastic_box: "garethahealy/centos7_java8"
-logstash_box: "centos/7"
+logstash_box: "garethahealy/centos7_java8"
 private_iface: eth0
 public_iface: eth1
 elk_version: 7.3.0
 es_major_version: 7.x
 es_use_repository: false
 es_custom_package_url: file:///vagrant/rpms/elasticsearch-7.3.0-x86_64.rpm
-metricbeat_custom_package: /vagrant/rpms/metricbeat-7.3.0-x86_64.rpm
-auditbeat_custom_package: /vagrant/rpms/auditbeat-7.3.0-x86_64.rpm
-filebeat_custom_package: /vagrant/rpms/filebeat-7.3.0-x86_64.rpm
+filebeat_custom_package_url: file:///vagrant/rpms/filebeat-7.3.0-x86_64.rpm
+auditbeat_custom_package_url: file:///vagrant/rpms/auditbeat-7.3.0-x86_64.rpm
+metricbeat_custom_package_url: file:///vagrant/rpms/metricbeat-7.3.0-x86_64.rpm
 logstash_custom_package: /vagrant/rpms/logstash-7.3.0.rpm
 kibana_custom_package: /vagrant/rpms/kibana-7.3.0-x86_64.rpm
 kibana_package_default: '{{ "kibana-" + elk_version if es_use_repository | bool else kibana_custom_package }}'
 logstash_package_default: '{{ "logstash-" + elk_version if es_use_repository | bool else logstash_custom_package }}'
-masterHosts_ip: "{% for host in groups['es-master-nodes'] %} {{hostvars[host]['ansible_'+public_iface]['ipv4']['address'] }}{%endfor %}"
+masterHosts_ip: "{% for host in groups['es-master-nodes'] %} {{hostvars[host]['ansible_host'] }}{%endfor %}"
 masterHost_ip: "{{ masterHosts_ip.split()[0] }}"
 masterHosts_http_url: "{% for host in groups['es-master-nodes'] %} https://{{hostvars[host]['ansible_'+public_iface]['ipv4']['address'] }}:{{cluster_http_port}}{%endfor %}"
 kibanaHosts_http_url: "{% for host in groups['es-kibana-nodes'] %} http://{{hostvars[host]['ansible_'+public_iface]['ipv4']['address'] }}:{{kibana_port}}{%endfor %}"
@@ -25,5 +25,5 @@ cluster_http_port: 9203
 cluster_transport_tcp_port: 9303
 kibana_port: 5601
 el_instance_name: instance
-### przy zmianie nazwy instancji należy wygenerować nowy certyfikat, patrz https://www.elastic.co/blog/elasticsearch-security-configure-tls-ssl-pki-authentication
+### there is a need to create new certificate after changing instance name, see https://www.elastic.co/blog/elasticsearch-security-configure-tls-ssl-pki-authentication
 el_instance_http_url: "https://{{ el_instance_name }}:{{ cluster_http_port }}"

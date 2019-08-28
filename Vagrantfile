@@ -41,30 +41,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         if (group == "es-logstash-nodes") then
           node.vm.box = vars['logstash_box']
         end
-        if (group == "es-beat-nodes") and (vars['es_use_repository'] == false) then
-          node.vm.provision :shell do |shell|
-            shell.args = vars['metricbeat_custom_package'] + " " + vars['filebeat_custom_package'] + " " + vars['auditbeat_custom_package']
-            shell.inline = <<-SHELL
-              sudo yum -y install $1 $2 $3
-            SHELL
-          end
-        end
-        if (group == "es-filebeat-nodes") then
-          node.vm.provision "file", source: "./datasets/elastic_blog_curated_access_logs.tar.gz", destination: "$HOME/datasets/elastic_blog_curated_access_logs.tar.gz"
-          node.vm.provision :shell do |shell|
-            shell.inline = <<-SHELL
-              tar xfvz /home/vagrant/datasets/elastic_blog_curated_access_logs.tar.gz -C /home/vagrant/datasets
-            SHELL
-          end
-          if (vars['es_use_repository'] == false)
-            node.vm.provision :shell do |shell|
-              shell.args = vars['filebeat_custom_package']
-              shell.inline = <<-SHELL
-                sudo yum -y install $1               
-              SHELL
-            end   
-          end
-        end
       end
     end
   end

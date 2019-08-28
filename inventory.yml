@@ -11,15 +11,14 @@ es-master-nodes:
       ansible_host: 192.168.33.25
       ansible_user: vagrant
       memory: 1024
-#    es-master-2:
-#      ansible_host: 192.168.33.26
-#      ansible_user: vagrant
-#      memory: 1024
-#    es-master-3:
-#      ansible_host: 192.168.33.27
-#      ansible_user: vagrant
-#      memory: 1024
-
+    es-master-2:
+      ansible_host: 192.168.33.26
+      ansible_user: vagrant
+      memory: 1024
+    es-master-3:
+      ansible_host: 192.168.33.27
+      ansible_user: vagrant
+      memory: 1024
 
 es-data-nodes:
   hosts:

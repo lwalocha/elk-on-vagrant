@@ -23,7 +23,7 @@
 
 
 - name: install all required beats on specified hosts
-  hosts: es-beat-nodes,es-master-nodes,es-kibana-nodes
+  hosts: es-beat-nodes,es-master-nodes
   roles:
     - { name: elastic.beats, beat: "metricbeat", when: "'es-beat-nodes' in group_names",
         beat_conf: {
@@ -75,24 +75,24 @@
         },
         output_conf: {
           "elasticsearch": {
-            "hosts": "{{ masterHosts_http_url.split() }}",
-            "ssl.verification_mode": "none",
+            "hosts": "{{el_instance_http_url}}",
+            "ssl.verification_mode": "full",
             "index": "metricbeat",
             "username": "elastic",
-            "password": "{{elastic_password}}"
-#            "output.elasticsearch.ssl.certificate_authorities": ["/etc/pki/certs/client-ca.cer"],
-#            "output.elasticsearch.ssl.certificate": "/etc/pki/client/client.cer",
-#            "output.elasticsearch.ssl.key": "/etc/pki/client/client.key"
+            "password": "{{elastic_password}}",
+            "ssl.certificate_authorities": ["/etc/pki/certs/client-ca.cer"]
           }
         }
     }
   sudo: yes
   vars:
     beats_version: "{{elk_version}}"
+    use_repository: "{{es_use_repository}}"
+    custom_package_url: "{{metricbeat_custom_package_url}}"
     elastic_password: ""
 
 - name: install all required beats on specified hosts
-  hosts: es-beat-nodes,es-master-nodes,es-kibana-nodes
+  hosts: es-beat-nodes,es-master-nodes
   roles:
     - { name: elastic.beats, beat: "filebeat", when: "'es-beat-nodes' in group_names",
         beat_conf: {
@@ -127,25 +127,25 @@
         },
         output_conf: {
           "elasticsearch": {
-            "hosts": "{{ masterHosts_http_url.split() }}",
-            "ssl.verification_mode": "none",
+            "hosts": "{{el_instance_http_url}}",
+            "ssl.verification_mode": "full",
             "index": "filebeat",
             "username": "elastic",
-            "password": "{{elastic_password}}"
-#            "output.elasticsearch.ssl.certificate_authorities": ["/etc/pki/certs/client-ca.cer"],
-#            "output.elasticsearch.ssl.certificate": "/etc/pki/client/client.cer",
-#            "output.elasticsearch.ssl.key": "/etc/pki/client/client.key"
+            "password": "{{elastic_password}}",
+            "ssl.certificate_authorities": ["/etc/pki/certs/client-ca.cer"]
           }
         }
     }
   sudo: yes 
   vars:
     beats_version: "{{elk_version}}"
+    use_repository: "{{es_use_repository}}"
+    custom_package_url: "{{filebeat_custom_package_url}}"
     elastic_password: ""
 
 
 - name: install all required beats on specified hosts
-  hosts: es-beat-nodes,es-master-nodes,es-kibana-nodes
+  hosts: es-beat-nodes,es-master-nodes
   roles:
     - { name: elastic.beats, beat: "auditbeat", when: "'es-beat-nodes' in group_names",
         beat_conf: {
@@ -177,21 +177,20 @@
         },
         output_conf: {
           "elasticsearch": {
-            "hosts": "{{ masterHosts_http_url.split() }}",
-            "ssl.verification_mode": "none",
+            "hosts": "{{el_instance_http_url}}",
+            "ssl.verification_mode": "full",
             "index": "auditbeat",
             "pipeline": "auditbeat",
             "username": "elastic",
-            "password": "{{elastic_password}}"
-#            "output.elasticsearch.ssl.certificate_authorities": ["/etc/pki/certs/client-ca.cer"],
-#            "output.elasticsearch.ssl.certificate": "/etc/pki/client/client.cer",
-#            "output.elasticsearch.ssl.key": "/etc/pki/client/client.key"
+            "password": "{{elastic_password}}",
+            "ssl.certificate_authorities": ["/etc/pki/certs/client-ca.cer"]
           }
         }
     }
   sudo: yes
   vars:
     beats_version: "{{elk_version}}"
+    use_repository: "{{es_use_repository}}"
+    custom_package_url: "{{auditbeat_custom_package_url}}"
     elastic_password: ""
-#    use_repository: "true"
 
