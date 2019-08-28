@@ -3,6 +3,7 @@ default_box: "centos/7"
 #elastic_box: "centos/7"
 elastic_box: "garethahealy/centos7_java8"
 logstash_box: "garethahealy/centos7_java8"
+### use "garethahealy/centos7_java8" box only if "es_use_repository" is false, else use "centos/7" box
 private_iface: eth0
 public_iface: eth1
 elk_version: 7.3.0
