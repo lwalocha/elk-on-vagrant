@@ -15,6 +15,7 @@ auditbeat_custom_package_url: file:///vagrant/rpms/auditbeat-7.3.0-x86_64.rpm
 metricbeat_custom_package_url: file:///vagrant/rpms/metricbeat-7.3.0-x86_64.rpm
 logstash_custom_package: /vagrant/rpms/logstash-7.3.0.rpm
 kibana_custom_package: /vagrant/rpms/kibana-7.3.0-x86_64.rpm
+### custom packages version must match "elk_version" and "es_major_version"
 kibana_package_default: '{{ "kibana-" + elk_version if es_use_repository | bool else kibana_custom_package }}'
 logstash_package_default: '{{ "logstash-" + elk_version if es_use_repository | bool else logstash_custom_package }}'
 masterHosts_ip: "{% for host in groups['es-master-nodes'] %} {{hostvars[host]['ansible_host'] }}{%endfor %}"
