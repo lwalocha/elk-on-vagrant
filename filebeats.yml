@@ -23,7 +23,9 @@
     - name: prepare datasets
       shell: |
         mkdir -p /home/vagrant/datasets
-        tar xfvz /vagrant/datasets/elastic_blog_curated_access_logs.* -C /home/vagrant/datasets
+        tar xfvz /vagrant/datasets/elastic_blog_curated_access_logs_server1.tar.gz -C /home/vagrant/datasets
+        tar xfvz /vagrant/datasets/elastic_blog_curated_access_logs_server2.tar.gz -C /home/vagrant/datasets
+        tar xfvz /vagrant/datasets/elastic_blog_curated_access_logs_server3.tar.gz -C /home/vagrant/datasets
 
 - name: install filebeat on specified hosts
   hosts: es-filebeat-nodes,es-master-nodes
