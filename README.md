@@ -1,6 +1,10 @@
 # elk-on-vagrant
 ELK on Vagrant installation
 
+Do poprawnego działania wymagana jest instalacja Vagrant-a oraz Virtualbox-a.
+- https://www.vagrantup.com/
+- https://www.virtualbox.org/
+
 1. Przygotowanie
 - Sklonownie repozytorium z github-a 
   - git clone https://github.com/lwalocha/elk-on-vagrant.git
